@@ -1,0 +1,65 @@
+{
+  "1": {
+    "inputs": {
+      "image": "first_frame.png"
+    },
+    "class_type": "ImageLoaderForVideo",
+    "_meta": {
+      "title": "Load First Frame"
+    }
+  },
+  "2": {
+    "inputs": {
+      "image": "last_frame.png"
+    },
+    "class_type": "ImageLoaderForVideo",
+    "_meta": {
+      "title": "Load Last Frame"
+    }
+  },
+  "3": {
+    "inputs": {
+      "first_frame": [1, 0],
+      "first_mask": [1, 1],
+      "last_frame": [2, 0],
+      "last_mask": [2, 1],
+      "text_prompt": "This video has a transparent background. A beautiful animation. Realistic style. Medium shot.",
+      "frame_count": 24,
+      "height": 480,
+      "width": 832,
+      "steps": 4,
+      "guidance_scale": 1.0,
+      "seed": 0,
+      "use_fp16": true,
+      "use_vae_guidance": true,
+      "alpha_shift_mean": 0.05
+    },
+    "class_type": "WanAlphaVideoGenerator",
+    "_meta": {
+      "title": "Wan-Alpha Video Generator"
+    }
+  },
+  "4": {
+    "inputs": {
+      "frame_count": 24,
+      "frame_rate": 24
+    },
+    "class_type": "FrameRateCalculator",
+    "_meta": {
+      "title": "Calculate Frame Rate"
+    }
+  },
+  "5": {
+    "inputs": {
+      "video_frames": [3, 0],
+      "filename": "transparent_video",
+      "frame_rate": [4, 0],
+      "codec": "VP8",
+      "quality": 50
+    },
+    "class_type": "SaveWebmWithAlpha",
+    "_meta": {
+      "title": "Save WebM with Alpha"
+    }
+  }
+}
