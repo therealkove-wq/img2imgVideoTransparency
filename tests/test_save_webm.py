@@ -51,6 +51,8 @@ def test_vp8_cmd_contains_quality_flags():
     assert cmd[cmd.index("-cpu-used") + 1] == "0"
     assert "-crf" in cmd
     assert cmd[cmd.index("-crf") + 1] == "13"
+    assert "-b:v" in cmd
+    assert cmd[cmd.index("-b:v") + 1] == "50M"
     assert "-qmin" not in cmd
     assert "-qmax" not in cmd
     assert "-auto-alt-ref" in cmd

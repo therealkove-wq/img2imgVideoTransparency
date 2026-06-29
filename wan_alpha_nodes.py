@@ -448,7 +448,7 @@ def _build_vp8_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, crf: int, output_
         "-quality", "best",
         "-cpu-used", "0",
         "-crf", str(crf),
-        "-b:v", "0",
+        "-b:v", "50M",
         "-auto-alt-ref", "0",
         output_path,
     ]
