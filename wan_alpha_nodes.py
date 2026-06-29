@@ -437,14 +437,15 @@ def _build_vp9_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, crf: int, output_
 
 
 def _build_vp8_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, crf: int, output_path: str):
+    # Use yuva420p directly — libvpx (VP8) supports it and the WebM muxer automatically
+    # writes alpha_mode=1 metadata, which is what players need to apply the alpha channel.
+    # The two-stream split approach omits alpha_mode=1, so players ignore the alpha entirely.
     return [
         ffmpeg, "-y",
         "-framerate", str(frame_rate),
         "-i", os.path.join(tmp_dir, "frame_%06d.png"),
-        "-filter_complex", "[0:v]split[c][tmp];[tmp]alphaextract[a]",
-        "-map", "[c]", "-map", "[a]",
         "-c:v", "libvpx",
-        "-pix_fmt", "yuv420p",
+        "-pix_fmt", "yuva420p",
         "-quality", "best",
         "-cpu-used", "0",
         "-crf", str(crf),
