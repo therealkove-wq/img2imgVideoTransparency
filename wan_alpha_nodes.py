@@ -536,8 +536,10 @@ class SaveWebmWithAlpha:
         else:
             print(f"[wan_alpha] WARNING: only {frames_np.shape[-1]} channels - NO alpha channel present")
 
-        # quality 1-100 -> crf 63-1  (lower crf = better quality)
-        crf = max(1, int(63 - (quality / 100.0) * 62))
+        if codec == "VP9":
+            crf = max(1, int(63 - (quality / 100.0) * 62))
+        else:
+            qmax = max(0, int((1.0 - quality / 100.0) * 63))
 
         tmp_dir = tempfile.mkdtemp(prefix="wan_alpha_")
         try:
@@ -554,23 +556,10 @@ class SaveWebmWithAlpha:
                     raise ValueError(f"Unexpected channel count: {channels}")
                 img.save(os.path.join(tmp_dir, f"frame_{i:06d}.png"))
 
-            # Two-stream VP9 WebM alpha: stream 0 = color (yuv420p),
-            # stream 1 = alpha matte (grayscale VP9) via alphaextract filter.
-            # This is the only approach that produces a WebM browsers can decode
-            # with transparency.
-            cmd = [
-                ffmpeg, "-y",
-                "-framerate", str(frame_rate),
-                "-i", os.path.join(tmp_dir, "frame_%06d.png"),
-                "-filter_complex",
-                "[0:v]split[c][tmp];[tmp]alphaextract[a]",
-                "-map", "[c]", "-map", "[a]",
-                "-c:v", "libvpx-vp9",
-                "-auto-alt-ref", "0",
-                "-b:v", "0",
-                "-crf", str(crf),
-                output_path,
-            ]
+            if codec == "VP9":
+                cmd = _build_vp9_cmd(ffmpeg, tmp_dir, frame_rate, crf, output_path)
+            else:
+                cmd = _build_vp8_cmd(ffmpeg, tmp_dir, frame_rate, qmax, output_path)
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
                 raise RuntimeError(f"FFmpeg failed:\n{result.stderr[-2000:]}")
