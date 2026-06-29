@@ -420,6 +420,41 @@ def _find_ffmpeg() -> str:
     return ""
 
 
+def _build_vp9_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, crf: int, output_path: str):
+    return [
+        ffmpeg, "-y",
+        "-framerate", str(frame_rate),
+        "-i", os.path.join(tmp_dir, "frame_%06d.png"),
+        "-c:v", "libvpx-vp9",
+        "-pix_fmt", "yuva420p",
+        "-deadline", "best",
+        "-cpu-used", "0",
+        "-b:v", "0",
+        "-crf", str(crf),
+        "-auto-alt-ref", "0",
+        output_path,
+    ]
+
+
+def _build_vp8_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, qmax: int, output_path: str):
+    return [
+        ffmpeg, "-y",
+        "-framerate", str(frame_rate),
+        "-i", os.path.join(tmp_dir, "frame_%06d.png"),
+        "-filter_complex", "[0:v]split[c][tmp];[tmp]alphaextract[a]",
+        "-map", "[c]", "-map", "[a]",
+        "-c:v", "libvpx",
+        "-pix_fmt", "yuv420p",
+        "-quality", "best",
+        "-cpu-used", "0",
+        "-qmin", "0",
+        "-qmax", str(qmax),
+        "-b:v", "0",
+        "-auto-alt-ref", "0",
+        output_path,
+    ]
+
+
 class SaveWebmWithAlpha:
     """Save RGBA video frames as VP9 WebM with alpha channel via FFmpeg."""
 
