@@ -38,7 +38,7 @@ def test_vp9_cmd_crf_value_is_passed_through():
 
 
 def test_vp8_cmd_contains_quality_flags():
-    cmd = _build_vp8_cmd("/usr/bin/ffmpeg", "/tmp/frames", 24, 12, "/out/video.webm")
+    cmd = _build_vp8_cmd("/usr/bin/ffmpeg", "/tmp/frames", 24, 13, "/out/video.webm")
     assert cmd[0] == "/usr/bin/ffmpeg"
     assert cmd[-1] == "/out/video.webm"
     assert "-filter_complex" in cmd
@@ -49,10 +49,10 @@ def test_vp8_cmd_contains_quality_flags():
     assert cmd[cmd.index("-quality") + 1] == "best"
     assert "-cpu-used" in cmd
     assert cmd[cmd.index("-cpu-used") + 1] == "0"
-    assert "-qmin" in cmd
-    assert cmd[cmd.index("-qmin") + 1] == "0"
-    assert "-qmax" in cmd
-    assert cmd[cmd.index("-qmax") + 1] == "12"
+    assert "-crf" in cmd
+    assert cmd[cmd.index("-crf") + 1] == "13"
+    assert "-qmin" not in cmd
+    assert "-qmax" not in cmd
     assert "-auto-alt-ref" in cmd
     assert cmd[cmd.index("-auto-alt-ref") + 1] == "0"
 
@@ -63,9 +63,9 @@ def test_vp8_cmd_maps_both_streams():
     assert len(map_positions) == 2, "Both color and alpha streams must be mapped"
 
 
-def test_vp8_cmd_qmax_value_is_passed_through():
+def test_vp8_cmd_crf_value_is_passed_through():
     cmd = _build_vp8_cmd("/ffmpeg", "/tmp", 24, 50, "/out.webm")
-    assert cmd[cmd.index("-qmax") + 1] == "50"
+    assert cmd[cmd.index("-crf") + 1] == "50"
 
 
 def test_vp9_quality_to_crf_formula():
@@ -77,10 +77,10 @@ def test_vp9_quality_to_crf_formula():
     assert q_to_crf(1)   == 62
 
 
-def test_vp8_quality_to_qmax_formula():
-    def q_to_qmax(q):
-        return max(0, int((1.0 - q / 100.0) * 63))
-    assert q_to_qmax(100) == 0
-    assert q_to_qmax(80)  == 12
-    assert q_to_qmax(50)  == 31
-    assert q_to_qmax(1)   == 62
+def test_vp8_quality_to_crf_formula():
+    def q_to_crf(q):
+        return max(1, int(63 - (q / 100.0) * 62))
+    assert q_to_crf(100) == 1
+    assert q_to_crf(80)  == 13
+    assert q_to_crf(50)  == 32
+    assert q_to_crf(1)   == 62

@@ -436,7 +436,7 @@ def _build_vp9_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, crf: int, output_
     ]
 
 
-def _build_vp8_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, qmax: int, output_path: str):
+def _build_vp8_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, crf: int, output_path: str):
     return [
         ffmpeg, "-y",
         "-framerate", str(frame_rate),
@@ -447,8 +447,7 @@ def _build_vp8_cmd(ffmpeg: str, tmp_dir: str, frame_rate: int, qmax: int, output
         "-pix_fmt", "yuv420p",
         "-quality", "best",
         "-cpu-used", "0",
-        "-qmin", "0",
-        "-qmax", str(qmax),
+        "-crf", str(crf),
         "-b:v", "0",
         "-auto-alt-ref", "0",
         output_path,
@@ -536,10 +535,7 @@ class SaveWebmWithAlpha:
         else:
             print(f"[wan_alpha] WARNING: only {frames_np.shape[-1]} channels - NO alpha channel present")
 
-        if codec == "VP9":
-            crf = max(1, int(63 - (quality / 100.0) * 62))
-        else:
-            qmax = max(0, int((1.0 - quality / 100.0) * 63))
+        crf = max(1, int(63 - (quality / 100.0) * 62))
 
         tmp_dir = tempfile.mkdtemp(prefix="wan_alpha_")
         try:
@@ -559,7 +555,7 @@ class SaveWebmWithAlpha:
             if codec == "VP9":
                 cmd = _build_vp9_cmd(ffmpeg, tmp_dir, frame_rate, crf, output_path)
             else:
-                cmd = _build_vp8_cmd(ffmpeg, tmp_dir, frame_rate, qmax, output_path)
+                cmd = _build_vp8_cmd(ffmpeg, tmp_dir, frame_rate, crf, output_path)
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
                 raise RuntimeError(f"FFmpeg failed:\n{result.stderr[-2000:]}")
